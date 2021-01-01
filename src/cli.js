@@ -1,3 +1,4 @@
+const fs = require('fs')
 const path = require('path')
 const { program } = require('commander')
 const OcadTiler = require('.')
@@ -23,14 +24,12 @@ const { numberZoomlevels, zoomlevelOffset, tileSize, baseResolution } = program
 readOcad(ocadPath)
   .then(async ocadFile => {
     const tiler = new OcadTiler(ocadFile)
-    const { bounds } = tiler
     let resolution = baseResolution
 
     // Count tiles
     let totalTiles = 0
     for (let z = numberZoomlevels - 1; z >= 0; z--) {
-      const projectedTileSize = tileSize * resolution
-      const [minCol, minRow, maxCol, maxRow] = tileBounds(projectedTileSize)
+      const [minCol, minRow, maxCol, maxRow] = tiler.tileBounds(resolution, tileSize)
       totalTiles += (maxCol - minCol) * (maxRow - minRow)
       resolution *= 2
     }
@@ -42,20 +41,17 @@ readOcad(ocadPath)
     resolution = baseResolution
     let renderedTiles = 0
     for (let z = numberZoomlevels - 1; z >= 0; z--) {
-      const projectedTileSize = tileSize * resolution
-      const [minCol, minRow, maxCol, maxRow] = tileBounds(projectedTileSize)
+      const [minCol, minRow, maxCol, maxRow] = tiler.tileBounds(resolution, tileSize)
       for (let row = minRow; row < maxRow; row++) {
         for (let col = minCol; col < maxCol; col++) {
-          const extent = [
-            col * projectedTileSize,
-            row * projectedTileSize,
-            (col + 1) * projectedTileSize,
-            (row + 1) * projectedTileSize
-          ]
           const tileDirPath = path.join(outputPath, (z + zoomlevelOffset).toString(), col.toString())
-          mkdirp(tileDirPath)
           const tilePath = path.join(tileDirPath, `${row}.png`)
-          await tiler.render(extent, resolution, { outputPath: tilePath })
+
+          if (!fs.existsSync(tilePath)) {
+            const extent = tiler.getTileExtent(resolution, tileSize, row, col)
+            mkdirp(tileDirPath)
+            await tiler.render(extent, resolution, { outputPath: tilePath })
+          }
 
           progress.update(++renderedTiles)
         }
@@ -65,23 +61,4 @@ readOcad(ocadPath)
     }
 
     progress.stop()
-
-    function tileBounds(projectedTileSize) {
-      return [
-        roundDown(bounds[0], projectedTileSize), 
-        roundDown(bounds[1], projectedTileSize), 
-        roundUp(bounds[2], projectedTileSize),        
-        roundUp(bounds[3], projectedTileSize),
-      ]
-    }
-
   })
-
-
-function roundDown(x, div) {
-  return Math.floor(x / div)
-}
-
-function roundUp(x, div) {
-  return Math.ceil(x / div)
-}

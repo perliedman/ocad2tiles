@@ -82,4 +82,33 @@ module.exports = class OcadTiler {
       throw new Error('Missing option "outputPath" or "format".')
     }
   }
+
+  tileBounds(resolution, tileSize) {
+    const projectedTileSize = tileSize * resolution
+    const { bounds } = this
+    return [
+      roundDown(bounds[0], projectedTileSize), 
+      roundDown(bounds[1], projectedTileSize), 
+      roundUp(bounds[2], projectedTileSize),        
+      roundUp(bounds[3], projectedTileSize),
+    ]
+  }
+
+  getTileExtent(resolution, tileSize, row, col) {
+    const projectedTileSize = tileSize * resolution
+    return [
+      col * projectedTileSize,
+      row * projectedTileSize,
+      (col + 1) * projectedTileSize,
+      (row + 1) * projectedTileSize
+    ]
+  }
+}
+
+function roundDown(x, div) {
+  return Math.floor(x / div)
+}
+
+function roundUp(x, div) {
+  return Math.ceil(x / div)
 }
