@@ -11,6 +11,7 @@ program
   .option('-o,--zoomlevel-offset <number>', 'Number to add to zoom level numbers', 0)
   .option('-s,--tile-size <number>', 'Tile size in pixels', 256)
   .option('-r,--base-resolution <number>', 'Base (most zoomed in) resolution used', 1)
+  .option('-f,--fill <string>', 'Background color (HTML color, transparent as default)')
   .parse(process.argv)
 
 if (program.args.length !== 2) {
@@ -19,7 +20,7 @@ if (program.args.length !== 2) {
 }
 
 const [ocadPath, outputPath] = program.args
-const { numberZoomlevels, zoomlevelOffset, tileSize, baseResolution } = program
+const { numberZoomlevels, zoomlevelOffset, tileSize, baseResolution, fill } = program
 
 readOcad(ocadPath)
   .then(async ocadFile => {
@@ -50,7 +51,7 @@ readOcad(ocadPath)
           if (!fs.existsSync(tilePath)) {
             const extent = tiler.getTileExtent(resolution, tileSize, row, col)
             mkdirp(tileDirPath)
-            await tiler.render(extent, resolution, { outputPath: tilePath })
+            await tiler.render(extent, resolution, { outputPath: tilePath, fill })
           }
 
           progress.update(++renderedTiles)
@@ -61,4 +62,7 @@ readOcad(ocadPath)
     }
 
     progress.stop()
+  })
+  .catch(err => {
+    console.error('Unexpected error:', err)
   })

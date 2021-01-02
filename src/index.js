@@ -47,7 +47,7 @@ module.exports = class OcadTiler {
     ]
   }
 
-  renderSvg(extent, resolution) {
+  renderSvg(extent, resolution, options={}) {
     const crs = this.ocadFile.getCrs()
     extent = [
       (extent[0] - crs.easting) / crs.scale / hundredsMmToMeter,
@@ -57,19 +57,28 @@ module.exports = class OcadTiler {
     ]
     const objects = this.index.search(extent[0], extent[1], extent[2], extent[3])
       .map(i => this.ocadFile.objects[i])
+    const document = DOMImplementation.createDocument(null, 'xml', null)
     const svg = ocadToSvg(this.ocadFile, {
       objects,
-      document: DOMImplementation.createDocument(null, 'xml', null)
+      document
     })
 
+    fixIds(svg)
     const mapGroup = svg.getElementsByTagName('g')[0]
     const transform = `scale(${(hundredsMmToMeter * crs.scale / resolution)}) translate(${-extent[0]}, ${extent[3]})`
     mapGroup.setAttributeNS('http://www.w3.org/2000/svg', 'transform', transform)
+    if (options.fill) {
+      const rect = document.createElement('rect')
+      rect.setAttributeNS( 'http://www.w3.org/2000/svg', 'fill', `${options.fill}`)
+      rect.setAttributeNS('http://www.w3.org/2000/svg', 'width', '100%')
+      rect.setAttributeNS('http://www.w3.org/2000/svg', 'height', '100%')
+      svg.insertBefore(rect, svg.firstChild)
+    }
     return svg
   }
 
-  render(extent, resolution, options) {
-    const svg = this.renderSvg(extent, resolution)
+  render(extent, resolution, options={}) {
+    const svg = this.renderSvg(extent, resolution, options)
     svg.setAttributeNS('http://www.w3.org/2000/svg', 'width', (extent[2] - extent[0]) / resolution)
     svg.setAttributeNS('http://www.w3.org/2000/svg', 'height', (extent[3] - extent[1]) / resolution)
     const xml = new XMLSerializer().serializeToString(svg)
@@ -111,4 +120,16 @@ function roundDown(x, div) {
 
 function roundUp(x, div) {
   return Math.ceil(x / div)
+}
+
+// In xmldom, node ids are normal attributes, while in the browser's
+// DOM, they are a property on the node object itself. This method
+// recursively "fixes" nodes by adding id attributes.
+function fixIds(n) {
+  if (n.id) {
+    n.setAttributeNS('http://www.w3.org/2000/svg', 'id', n.id)
+  }
+  for (let i = 0; i < n.childNodes.length; i++) {
+    fixIds(n.childNodes[i])
+  }
 }
