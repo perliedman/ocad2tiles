@@ -44,7 +44,7 @@ Options:
 ### OcadTiler
 
 ```js
-const OcadTiler = require('.')
+const OcadTiler = require('ocad2tiles')
 const { readOcad } = require('ocad2geojson')
 const metersPerPixel = 1
 
