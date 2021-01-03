@@ -7,7 +7,7 @@ const { sync: mkdirp } = require('mkdirp')
 const { SingleBar } = require('cli-progress')
 
 program
-  .option('-n,--number-zoomlevels <number>', 'Number of zoom levels to generate', 6)
+  .option('-n,--number-zoomlevels <number>', 'Number of zoom levels to generate', 4)
   .option('-o,--zoomlevel-offset <number>', 'Number to add to zoom level numbers', 0)
   .option('-s,--tile-size <number>', 'Tile size in pixels', 256)
   .option('-r,--base-resolution <number>', 'Base (most zoomed in) resolution used', 1)
