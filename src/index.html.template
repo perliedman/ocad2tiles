@@ -21,19 +21,19 @@
   <body>
     <div id="map"></div>
     <script>
-      const mapExtent = ${bounds};
-      const mapMinZoom = ${minZoom};
-      const mapMaxZoom = ${maxZoom};
-      const mapMaxResolution = ${baseResolution};
-      const mapMinResolution = Math.pow(2, mapMaxZoom) * mapMaxResolution;
+      const extent = ${bounds};
+      const minZoom = ${minZoom};
+      const maxZoom = ${maxZoom};
+      const maxResolution = ${baseResolution};
+      const minResolution = Math.pow(2, maxZoom) * maxResolution;
       const crs = L.CRS.Simple;
       crs.transformation = new L.Transformation(1, 0, -1, 0);
-      crs.projection.bounds = L.bounds([0, 0], [mapExtent[2], mapExtent[3]])
+      crs.projection.bounds = L.bounds([0, 0], [extent[2], extent[3]])
       crs.scale = function(zoom) {
-        return Math.pow(2, zoom) / mapMinResolution;
+        return Math.pow(2, zoom) / minResolution;
       };
       crs.zoom = function(scale) {
-        return Math.log(scale * mapMinResolution) / Math.LN2;
+        return Math.log(scale * minResolution) / Math.LN2;
       };
       crs.infinite = false
       const map = L.map('map', {
@@ -41,10 +41,10 @@
         layers: [
           L.tileLayer('{z}/{x}/{y}.png', { tms: true })
         ],
-        center: [(mapExtent[1] + mapExtent[3]) / 2, (mapExtent[0] + mapExtent[2]) / 2],
-        zoom: Math.round((mapMinZoom + mapMaxZoom) / 2),
-        minZoom: 0,
-        maxZoom: 5
+        center: [(extent[1] + extent[3]) / 2, (extent[0] + extent[2]) / 2],
+        zoom: Math.round((minZoom + maxZoom) / 2),
+        minZoom: minZoom,
+        maxZoom: maxZoom
       })
     </script>
   </body>
