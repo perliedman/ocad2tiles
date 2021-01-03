@@ -35,6 +35,10 @@ readOcad(ocadPath)
       resolution *= 2
     }
 
+    console.log('Min resolution:', baseResolution)
+    console.log('Max resolution:', baseResolution * Math.pow(2, numberZoomlevels - 1))
+    console.log('Bounds:', tiler.bounds)
+
     const progress = new SingleBar()
     progress.start(totalTiles, 0)
 
@@ -62,7 +66,31 @@ readOcad(ocadPath)
     }
 
     progress.stop()
+
+    const indexTemplate = fs.readFileSync(path.join(__dirname, 'index.html.template'), 'utf8')
+    fs.writeFileSync(path.join(outputPath, 'index.html'), template(indexTemplate, {
+      bounds: JSON.stringify(tiler.bounds),
+      minZoom: 0,
+      maxZoom: numberZoomlevels - 1,
+      baseResolution
+    }))
   })
   .catch(err => {
     console.error('Unexpected error:', err)
   })
+
+// Template util: copied from Leaflet.js
+const templateRe = /\$\{ *([\w_ -]+) *\}/g;
+function template(str, data) {
+  return str.replace(templateRe, function (str, key) {
+    var value = data[key];
+
+    if (value === undefined) {
+      throw new Error('No value provided for variable ' + str);
+
+    } else if (typeof value === 'function') {
+      value = value(data);
+    }
+    return value;
+  });
+}
