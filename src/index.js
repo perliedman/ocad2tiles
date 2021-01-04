@@ -86,7 +86,8 @@ module.exports = class OcadTiler {
     svg.setAttributeNS('http://www.w3.org/2000/svg', 'width', extentWidth / svgResolution + 'px')
     svg.setAttributeNS('http://www.w3.org/2000/svg', 'height', extentHeight / svgResolution + 'px')
     const xml = new XMLSerializer().serializeToString(svg)
-    const result = sharp(Buffer.from(xml)).resize(extentWidth / resolution, extentHeight / resolution)
+    const result = sharp(Buffer.from(xml))
+      .resize(Math.round(extentWidth / resolution), Math.round(extentHeight / resolution))
     if (options.outputPath) {
       return result.toFile(options.outputPath)
     } else if (options.format) {
