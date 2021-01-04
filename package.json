@@ -23,7 +23,7 @@
     "commander": "^6.2.1",
     "flatbush": "^3.3.0",
     "mkdirp": "^1.0.4",
-    "ocad2geojson": "^1.8.1",
+    "ocad2geojson": "^1.9.1",
     "sharp": "^0.27.0",
     "xmldom": "^0.4.0"
   }
