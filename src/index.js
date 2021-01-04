@@ -133,7 +133,9 @@ function fixIds(n) {
   if (n.id) {
     n.setAttributeNS('http://www.w3.org/2000/svg', 'id', n.id)
   }
-  for (let i = 0; i < n.childNodes.length; i++) {
-    fixIds(n.childNodes[i])
+  if (n.childNodes) {
+    for (let i = 0; i < n.childNodes.length; i++) {
+      fixIds(n.childNodes[i])
+    }
   }
 }
