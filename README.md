@@ -13,6 +13,18 @@ npm install ocad2tiles
 
 ### Create tiles
 
+This will create a set of tiles (small, square raster images, sometimes also called image pyramid or image mosaic) suitable for use in map clients like Leaflet or OpenLayers.
+
+The tool will create a number of directories, one per zoom level, in the output path. It also creates a small demo HTML page, `index.html`, where you can see the tiles result in a Leaflet map.
+
+Example:
+
+```shell
+npx ocad2tiles my-map-file.ocd /my/output/path
+```
+
+Detailed usage:
+
 ```
 Usage: npx ocad2tiles [options] [OCAD MAP FILE] [OUTPUT PATH]
 
@@ -27,7 +39,15 @@ Options:
 
 ### Create image
 
-Make a single raster image from an OCAD map file
+Make a single raster image from an OCAD map file.
+
+Example:
+
+```shell
+npx ocad2image my-map-file.ocd my-image.png
+```
+
+Detailed usage:
 
 ```
 Usage: npx ocad2image [options] [OCAD MAP FILE] [OUTPUT PATH]
