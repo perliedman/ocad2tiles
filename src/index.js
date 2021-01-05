@@ -78,7 +78,8 @@ module.exports = class OcadTiler {
   }
 
   render(extent, resolution, options={}) {
-    const svgResolution = Math.min(resolution, 1)
+    const crs = this.ocadFile.getCrs()
+    const svgResolution = Math.min(resolution, 1 * (crs.scale / 15000))
     const svg = this.renderSvg(extent, svgResolution, options)
     const extentWidth = (extent[2] - extent[0])
     const extentHeight = (extent[3] - extent[1])
