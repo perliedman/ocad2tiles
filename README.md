@@ -5,6 +5,14 @@ Creates raster images and tiles from an OCAD map file. Tiles are suitable for us
 
 ## Installing
 
+To use command line tools:
+
+```shell
+npm install -g ocad2tiles
+```
+
+To use as a library in your project:
+
 ```shell
 npm install ocad2tiles
 ```
@@ -20,13 +28,13 @@ The tool will create a number of directories, one per zoom level, in the output 
 Example:
 
 ```shell
-npx ocad2tiles my-map-file.ocd /my/output/path
+ocad2tiles my-map-file.ocd /my/output/path
 ```
 
 Detailed usage:
 
 ```
-Usage: npx ocad2tiles [options] [OCAD MAP FILE] [OUTPUT PATH]
+Usage: ocad2tiles [options] [OCAD MAP FILE] [OUTPUT PATH]
 
 Options:
   -n,--number-zoomlevels <number>  Number of zoom levels to generate (default: 6)
@@ -44,13 +52,13 @@ Make a single raster image from an OCAD map file.
 Example:
 
 ```shell
-npx ocad2image my-map-file.ocd my-image.png
+ocad2image my-map-file.ocd my-image.png
 ```
 
 Detailed usage:
 
 ```
-Usage: npx ocad2image [options] [OCAD MAP FILE] [OUTPUT PATH]
+Usage: ocad2image [options] [OCAD MAP FILE] [OUTPUT PATH]
 
 Options:
   -b,--bounds <string>      bounds (xmin, ymin, xmax, ymax) in map CRS coordinates; defaults to map bounds
