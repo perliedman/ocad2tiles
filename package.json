@@ -6,6 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": "https://github.com/perliedman/ocad2tiles.git",
+  "homepage": "https://github.com/perliedman/ocad2tiles",
   "bin": {
     "ocad2tiles": "./src/ocad2tiles.js",
     "ocad2image": "./src/ocad2image.js"
