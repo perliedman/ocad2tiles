@@ -25,6 +25,8 @@ This will create a set of tiles (small, square raster images, sometimes also cal
 
 The tool will create a number of directories, one per zoom level, in the output path. It also creates a small demo HTML page, `index.html`, where you can see the tiles result in a Leaflet map.
 
+Tiles are currently always written in PNG format.
+
 Example:
 
 ```shell
@@ -48,6 +50,18 @@ Options:
 ### Create image
 
 Make a single raster image from an OCAD map file.
+
+Supported output formats:
+
+* PNG
+* JPEG
+* SVG
+* PDF (basic support, currently limited control over page format and scale)
+* WEBP
+* GIF
+* TIFF
+
+Output format is determined by the output path's extension
 
 Example:
 
