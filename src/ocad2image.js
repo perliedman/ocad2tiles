@@ -19,11 +19,33 @@ readOcad(ocadPath)
     const tiler = new OcadTiler(ocadFile)
     const bounds = boundsStr ? boundsStr.split(',').map(Number) : tiler.bounds
     const isSvg = /^.*\.(svg)$/i.exec(outputPath)
-    if (!isSvg) {
-      tiler.render(bounds, resolution, { outputPath, fill })
-    } else {
+    const isPdf = /^.*\.(pdf)$/i.exec(outputPath)
+    if (isSvg || isPdf) {
       const svg = tiler.renderSvg(bounds, resolution, { fill })
-      fs.writeFileSync(outputPath, svg)
+      if (isPdf) {
+        const PDFDocument = require('pdfkit')
+        const SVGtoPDF = require('svg-to-pdfkit')
+        const XMLSerializer = require('xmldom').XMLSerializer
+      
+        const doc = new PDFDocument()
+        const stream = doc.pipe(fs.createWriteStream(outputPath))
+        SVGtoPDF(doc, new XMLSerializer().serializeToString(svg), 0, 0, {
+          assumePt: true,
+          colorCallback: x => {
+            const color = x && ocadFile.colors.find(c => c && c.rgbArray[0] === x[0][0] && c.rgbArray[1] === x[0][1] && c.rgbArray[2] === x[0][2])
+            return color && color.cmyk && [color.cmyk, x[1]] || x
+          }
+        })
+    
+        doc.end()
+        stream.on('finish', () => {
+          process.exit(0)
+        })
+      } else {
+        fs.writeFileSync(outputPath, svg)
+      }
+    } else {
+      tiler.render(bounds, resolution, { outputPath, fill })
     }
   })
   .catch(err => {
