@@ -25,6 +25,10 @@ This will create a set of tiles (small, square raster images, sometimes also cal
 
 The tool will create a number of directories, one per zoom level, in the output path. It also creates a small demo HTML page, `index.html`, where you can see the tiles result in a Leaflet map.
 
+Optionally, using the `--serve` option, the tool will start a web server which
+can serve the tiles, as well as the demo web page. This is a great way to quickly
+test configuration without generating a lot of tiles.
+
 Tiles are currently always written in PNG format.
 
 Example:
@@ -39,11 +43,13 @@ Detailed usage:
 Usage: ocad2tiles [options] [OCAD MAP FILE] [OUTPUT PATH]
 
 Options:
-  -n,--number-zoomlevels <number>  Number of zoom levels to generate (default: 6)
+  -n,--number-zoomlevels <number>  Number of zoom levels to generate (default: 4)
   -o,--zoomlevel-offset <number>   Number to add to zoom level numbers (default: 0)
   -s,--tile-size <number>          Tile size in pixels (default: 256)
   -r,--base-resolution <number>    Base (most zoomed in) resolution used (default: 1)
   -f,--fill <string>               Background color (HTML color, transparent as default)
+  -s,--serve                       Run as webserver, serving the tiles
+  -p,--port <number>               Port to run webserver on (see --serve) (default: 8080)
   -h, --help                       display help for command
 ```
 

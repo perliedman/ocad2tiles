@@ -23,6 +23,7 @@
   "dependencies": {
     "cli-progress": "^3.8.2",
     "commander": "^6.2.1",
+    "director": "^1.2.8",
     "flatbush": "^3.3.0",
     "mkdirp": "^1.0.4",
     "ocad2geojson": "^1.9.1",
