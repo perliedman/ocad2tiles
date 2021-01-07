@@ -1,4 +1,4 @@
-const { ocadToSvg } = require('ocad2geojson')
+const { ocadToSvg, ocadToGeoJson } = require('ocad2geojson')
 const Flatbush = require('flatbush')
 const sharp = require('sharp')
 const DOMImplementation = global.DOMImplementation
@@ -47,7 +47,22 @@ module.exports = class OcadTiler {
     ]
   }
 
+  renderGeoJson(extent, options) {
+    return ocadToGeoJson(this.ocadFile, {
+      objects: this.getObjects(extent), 
+      ...options
+    })
+  }
+
   renderSvg(extent, resolution, options={}) {
+    const document = DOMImplementation.createDocument(null, 'xml', null)
+    const svg = ocadToSvg(this.ocadFile, {
+      objects: this.getObjects(extent),
+      document
+    })
+    
+    fixIds(svg)
+    const mapGroup = svg.getElementsByTagName('g')[0]
     const crs = this.ocadFile.getCrs()
     extent = [
       (extent[0] - crs.easting) / crs.scale / hundredsMmToMeter,
@@ -55,16 +70,6 @@ module.exports = class OcadTiler {
       (extent[2] - crs.easting) / crs.scale / hundredsMmToMeter,
       (extent[3] - crs.northing) / crs.scale / hundredsMmToMeter,
     ]
-    const objects = this.index.search(extent[0], extent[1], extent[2], extent[3])
-      .map(i => this.ocadFile.objects[i])
-    const document = DOMImplementation.createDocument(null, 'xml', null)
-    const svg = ocadToSvg(this.ocadFile, {
-      objects,
-      document
-    })
-
-    fixIds(svg)
-    const mapGroup = svg.getElementsByTagName('g')[0]
     const transform = `scale(${(hundredsMmToMeter * crs.scale / resolution)}) translate(${-extent[0]}, ${extent[3]})`
     mapGroup.setAttributeNS('http://www.w3.org/2000/svg', 'transform', transform)
     if (options.fill) {
@@ -96,6 +101,18 @@ module.exports = class OcadTiler {
     } else {
       throw new Error('Missing option "outputPath" or "format".')
     }
+  }
+
+  getObjects(extent) {
+    const crs = this.ocadFile.getCrs()
+    extent = [
+      (extent[0] - crs.easting) / crs.scale / hundredsMmToMeter,
+      (extent[1] - crs.northing) / crs.scale / hundredsMmToMeter,
+      (extent[2] - crs.easting) / crs.scale / hundredsMmToMeter,
+      (extent[3] - crs.northing) / crs.scale / hundredsMmToMeter,
+    ]
+    return this.index.search(extent[0], extent[1], extent[2], extent[3])
+      .map(i => this.ocadFile.objects[i])
   }
 
   tileBounds(resolution, tileSize) {

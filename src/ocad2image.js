@@ -20,6 +20,7 @@ readOcad(ocadPath)
     const bounds = boundsStr ? boundsStr.split(',').map(Number) : tiler.bounds
     const isSvg = /^.*\.(svg)$/i.exec(outputPath)
     const isPdf = /^.*\.(pdf)$/i.exec(outputPath)
+    const isGeoJson = /^.*\.(json|geojson)$/i.exec(outputPath)
     if (isSvg || isPdf) {
       const svg = tiler.renderSvg(bounds, resolution, { fill })
       if (isPdf) {
@@ -44,6 +45,8 @@ readOcad(ocadPath)
       } else {
         fs.writeFileSync(outputPath, svg)
       }
+    } else if (isGeoJson) {
+      fs.writeFileSync(outputPath, JSON.stringify(tiler.renderGeoJson(bounds)))
     } else {
       tiler.render(bounds, resolution, { outputPath, fill })
     }
