@@ -26,7 +26,7 @@
     "director": "^1.2.8",
     "flatbush": "^3.3.0",
     "mkdirp": "^1.0.4",
-    "ocad2geojson": "^1.9.2",
+    "ocad2geojson": "^1.9.3",
     "pdfkit": "^0.11.0",
     "sharp": "^0.27.0",
     "svg-to-pdfkit": "^0.1.8",
