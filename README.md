@@ -1,5 +1,4 @@
-OCAD to Tiles
-=============
+# OCAD to Tiles
 
 Creates raster images and tiles from an OCAD map file. Tiles are suitable for use with for example [Leaflet](https://leafletjs.com/) or [OpenLayers](https://openlayers.org/).
 
@@ -50,6 +49,7 @@ Options:
   -f,--fill <string>               Background color (HTML color, transparent as default)
   -s,--serve                       Run as webserver, serving the tiles
   -p,--port <number>               Port to run webserver on (see --serve) (default: 8080)
+  --show-hidden                    Include hidden symbols in the output
   -h, --help                       display help for command
 ```
 
@@ -59,13 +59,14 @@ Make a single raster image from an OCAD map file.
 
 Supported output formats:
 
-* PNG
-* JPEG
-* SVG
-* PDF (basic support, currently limited control over page format and scale)
-* WEBP
-* GIF
-* TIFF
+- PNG
+- JPEG
+- SVG
+- PDF (basic support, currently limited control over page format and scale)
+- WEBP
+- GIF
+- TIFF
+- GeoJSON (not really an image, but convenient)
 
 Output format is determined by the output path's extension
 
@@ -84,6 +85,7 @@ Options:
   -b,--bounds <string>      bounds (xmin, ymin, xmax, ymax) in map CRS coordinates; defaults to map bounds
   -r,--resolution <number>  resolution in meters per pixel (default: 1)
   -f,--fill <string>        Background color (HTML color, transparent as default)
+  --show-hidden             Include hidden symbols in the output
   -h, --help                display help for command
 ```
 
