@@ -9,9 +9,10 @@ program
   .option('-b,--bounds <string>', 'bounds (xmin, ymin, xmax, ymax) in map CRS coordinates; defaults to map bounds')
   .option('-r,--resolution <number>', 'resolution in meters per pixel', 1)
   .option('-f,--fill <string>', 'Background color (HTML color, transparent as default)')
+  .option('--show-hidden', 'Include hidden symbols in the output')
   .parse(process.argv)
 
-const { bounds: boundsStr, resolution, fill } = program
+const { bounds: boundsStr, resolution, fill, showHidden: exportHidden } = program
 const [ocadPath, outputPath] = program.args
 
 readOcad(ocadPath)
@@ -22,7 +23,7 @@ readOcad(ocadPath)
     const isPdf = /^.*\.(pdf)$/i.exec(outputPath)
     const isGeoJson = /^.*\.(json|geojson)$/i.exec(outputPath)
     if (isSvg || isPdf) {
-      const svg = tiler.renderSvg(bounds, resolution, { fill })
+      const svg = tiler.renderSvg(bounds, resolution, { fill, exportHidden })
       if (isPdf) {
         const PDFDocument = require('pdfkit')
         const SVGtoPDF = require('svg-to-pdfkit')
@@ -46,9 +47,9 @@ readOcad(ocadPath)
         fs.writeFileSync(outputPath, svg)
       }
     } else if (isGeoJson) {
-      fs.writeFileSync(outputPath, JSON.stringify(tiler.renderGeoJson(bounds)))
+      fs.writeFileSync(outputPath, JSON.stringify(tiler.renderGeoJson(bounds, { exportHidden })))
     } else {
-      tiler.render(bounds, resolution, { outputPath, fill })
+      tiler.render(bounds, resolution, { outputPath, fill, exportHidden })
     }
   })
   .catch(err => {

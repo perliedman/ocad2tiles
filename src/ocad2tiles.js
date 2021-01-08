@@ -16,6 +16,7 @@ program
   .option('-f,--fill <string>', 'Background color (HTML color, transparent as default)')
   .option('-s,--serve', 'Run as webserver, serving the tiles')
   .option('-p,--port <number>', 'Port to run webserver on (see --serve)', 8080)
+  .option('--show-hidden', 'Include hidden symbols in the output')
   .parse(process.argv)
 
 if (program.args.length !== 2) {
@@ -24,7 +25,16 @@ if (program.args.length !== 2) {
 }
 
 const [ocadPath, outputPath] = program.args
-const { numberZoomlevels, zoomlevelOffset, tileSize, baseResolution, fill, port, serve } = program
+const {
+  numberZoomlevels,
+  zoomlevelOffset,
+  tileSize,
+  baseResolution,
+  fill,
+  port,
+  serve,
+  showHidden: exportHidden
+} = program
 
 readOcad(ocadPath)
   .then(async ocadFile => {
@@ -76,7 +86,7 @@ readOcad(ocadPath)
             if (!fs.existsSync(tilePath)) {
               const extent = tiler.getTileExtent(resolution, tileSize, row, col)
               mkdirp(tileDirPath)
-              await tiler.render(extent, resolution, { outputPath: tilePath, fill })
+              await tiler.render(extent, resolution, { outputPath: tilePath, fill, exportHidden })
             }
 
             progress.update(++renderedTiles)
@@ -133,7 +143,7 @@ readOcad(ocadPath)
 
           const extent = tiler.getTileExtent(resolution, tileSize, y, x)
           mkdirp(tileDirPath)
-          await tiler.render(extent, resolution, { outputPath: tilePath, fill })
+          await tiler.render(extent, resolution, { outputPath: tilePath, fill, exportHidden })
         }
         this.res.writeHead(200, { 'Content-Type': 'image/png' })
         this.res.end(fs.readFileSync(tilePath))
