@@ -15,14 +15,19 @@ module.exports = class OcadTiler {
     this.ocadFile = ocadFile
     this.index = new Flatbush(this.ocadFile.objects.length)
 
-    const bounds = [Number.MAX_VALUE, Number.MAX_VALUE, -Number.MAX_VALUE, -Number.MAX_VALUE]
+    const bounds = [
+      Number.MAX_VALUE,
+      Number.MAX_VALUE,
+      -Number.MAX_VALUE,
+      -Number.MAX_VALUE,
+    ]
 
     for (const o of this.ocadFile.objects) {
       let minX = Number.MAX_VALUE
       let minY = Number.MAX_VALUE
       let maxX = -Number.MAX_VALUE
       let maxY = -Number.MAX_VALUE
-  
+
       for (const [x, y] of o.coordinates) {
         minX = Math.min(x, minX)
         minY = Math.min(y, minY)
@@ -36,8 +41,8 @@ module.exports = class OcadTiler {
       bounds[2] = Math.max(maxX, bounds[2])
       bounds[3] = Math.max(maxY, bounds[3])
     }
-  
-    this.index.finish()  
+
+    this.index.finish()
     const crs = ocadFile.getCrs()
     this.bounds = [
       bounds[0] * hundredsMmToMeter * crs.scale + crs.easting,
@@ -49,18 +54,18 @@ module.exports = class OcadTiler {
 
   renderGeoJson(extent, options) {
     return ocadToGeoJson(this.ocadFile, {
-      objects: this.getObjects(extent), 
-      ...options
+      objects: this.getObjects(extent),
+      ...options,
     })
   }
 
-  renderSvg(extent, resolution, options={}) {
+  renderSvg(extent, resolution, options = {}) {
     const document = DOMImplementation.createDocument(null, 'xml', null)
     const svg = ocadToSvg(this.ocadFile, {
       objects: this.getObjects(extent),
-      document
+      document,
     })
-    
+
     fixIds(svg)
     const mapGroup = svg.getElementsByTagName('g')[0]
     const crs = this.ocadFile.getCrs()
@@ -70,11 +75,21 @@ module.exports = class OcadTiler {
       (extent[2] - crs.easting) / crs.scale / hundredsMmToMeter,
       (extent[3] - crs.northing) / crs.scale / hundredsMmToMeter,
     ]
-    const transform = `scale(${(hundredsMmToMeter * crs.scale / resolution)}) translate(${-extent[0]}, ${extent[3]})`
-    mapGroup.setAttributeNS('http://www.w3.org/2000/svg', 'transform', transform)
+    const transform = `scale(${
+      (hundredsMmToMeter * crs.scale) / resolution
+    }) translate(${-extent[0]}, ${extent[3]})`
+    mapGroup.setAttributeNS(
+      'http://www.w3.org/2000/svg',
+      'transform',
+      transform
+    )
     if (options.fill) {
       const rect = document.createElement('rect')
-      rect.setAttributeNS( 'http://www.w3.org/2000/svg', 'fill', `${options.fill}`)
+      rect.setAttributeNS(
+        'http://www.w3.org/2000/svg',
+        'fill',
+        `${options.fill}`
+      )
       rect.setAttributeNS('http://www.w3.org/2000/svg', 'width', '100%')
       rect.setAttributeNS('http://www.w3.org/2000/svg', 'height', '100%')
       svg.insertBefore(rect, svg.firstChild)
@@ -82,18 +97,28 @@ module.exports = class OcadTiler {
     return svg
   }
 
-  render(extent, resolution, options={}) {
+  render(extent, resolution, options = {}) {
     const crs = this.ocadFile.getCrs()
     const svgResolution = Math.min(resolution, 1 * (crs.scale / 15000))
     const svg = this.renderSvg(extent, svgResolution, options)
-    const extentWidth = (extent[2] - extent[0])
-    const extentHeight = (extent[3] - extent[1])
+    const extentWidth = extent[2] - extent[0]
+    const extentHeight = extent[3] - extent[1]
 
-    svg.setAttributeNS('http://www.w3.org/2000/svg', 'width', extentWidth / svgResolution + 'px')
-    svg.setAttributeNS('http://www.w3.org/2000/svg', 'height', extentHeight / svgResolution + 'px')
+    svg.setAttributeNS(
+      'http://www.w3.org/2000/svg',
+      'width',
+      extentWidth / svgResolution + 'px'
+    )
+    svg.setAttributeNS(
+      'http://www.w3.org/2000/svg',
+      'height',
+      extentHeight / svgResolution + 'px'
+    )
     const xml = new XMLSerializer().serializeToString(svg)
-    const result = sharp(Buffer.from(xml))
-      .resize(Math.round(extentWidth / resolution), Math.round(extentHeight / resolution))
+    const result = sharp(Buffer.from(xml)).resize(
+      Math.round(extentWidth / resolution),
+      Math.round(extentHeight / resolution)
+    )
     if (options.outputPath) {
       return result.toFile(options.outputPath)
     } else if (options.format) {
@@ -111,7 +136,8 @@ module.exports = class OcadTiler {
       (extent[2] - crs.easting) / crs.scale / hundredsMmToMeter,
       (extent[3] - crs.northing) / crs.scale / hundredsMmToMeter,
     ]
-    return this.index.search(extent[0], extent[1], extent[2], extent[3])
+    return this.index
+      .search(extent[0], extent[1], extent[2], extent[3])
       .map(i => this.ocadFile.objects[i])
   }
 
@@ -119,9 +145,9 @@ module.exports = class OcadTiler {
     const projectedTileSize = tileSize * resolution
     const { bounds } = this
     return [
-      roundDown(bounds[0], projectedTileSize), 
-      roundDown(bounds[1], projectedTileSize), 
-      roundUp(bounds[2], projectedTileSize),        
+      roundDown(bounds[0], projectedTileSize),
+      roundDown(bounds[1], projectedTileSize),
+      roundUp(bounds[2], projectedTileSize),
       roundUp(bounds[3], projectedTileSize),
     ]
   }
@@ -132,7 +158,7 @@ module.exports = class OcadTiler {
       col * projectedTileSize,
       row * projectedTileSize,
       (col + 1) * projectedTileSize,
-      (row + 1) * projectedTileSize
+      (row + 1) * projectedTileSize,
     ]
   }
 }
