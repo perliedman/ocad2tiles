@@ -62,7 +62,7 @@ module.exports = class OcadTiler {
   renderSvg(extent, resolution, options = {}) {
     const document = DOMImplementation.createDocument(null, 'xml', null)
     const svg = ocadToSvg(this.ocadFile, {
-      objects: this.getObjects(extent),
+      objects: this.getObjects(extent, (options.buffer || 256) * resolution),
       document,
     })
 
@@ -128,13 +128,13 @@ module.exports = class OcadTiler {
     }
   }
 
-  getObjects(extent) {
+  getObjects(extent, buffer) {
     const crs = this.ocadFile.getCrs()
     extent = [
-      (extent[0] - crs.easting) / crs.scale / hundredsMmToMeter,
-      (extent[1] - crs.northing) / crs.scale / hundredsMmToMeter,
-      (extent[2] - crs.easting) / crs.scale / hundredsMmToMeter,
-      (extent[3] - crs.northing) / crs.scale / hundredsMmToMeter,
+      (extent[0] - crs.easting) / crs.scale / hundredsMmToMeter - buffer,
+      (extent[1] - crs.northing) / crs.scale / hundredsMmToMeter - buffer,
+      (extent[2] - crs.easting) / crs.scale / hundredsMmToMeter + buffer,
+      (extent[3] - crs.northing) / crs.scale / hundredsMmToMeter + buffer,
     ]
     return this.index
       .search(extent[0], extent[1], extent[2], extent[3])
