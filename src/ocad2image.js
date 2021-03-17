@@ -16,6 +16,7 @@ program
     'Background color (HTML color, transparent as default)'
   )
   .option('--show-hidden', 'Include hidden symbols in the output')
+  .option('-v,--verbose', 'Show more output')
   .parse(process.argv)
 
 const {
@@ -23,6 +24,7 @@ const {
   resolution,
   fill,
   showHidden: exportHidden,
+  verbose,
 } = program
 const [ocadPath, outputPath] = program.args
 
@@ -33,6 +35,7 @@ readOcad(ocadPath)
     const isSvg = /^.*\.(svg)$/i.exec(outputPath)
     const isPdf = /^.*\.(pdf)$/i.exec(outputPath)
     const isGeoJson = /^.*\.(json|geojson)$/i.exec(outputPath)
+    verboseLog('Bounds', tiler.bounds)
     if (isSvg || isPdf) {
       const svg = tiler.renderSvg(bounds, resolution, { fill, exportHidden })
       if (isPdf) {
@@ -71,9 +74,20 @@ readOcad(ocadPath)
         JSON.stringify(tiler.renderGeoJson(bounds, { exportHidden }))
       )
     } else {
-      tiler.render(bounds, resolution, { outputPath, fill, exportHidden })
+      return tiler.render(bounds, resolution, {
+        outputPath,
+        fill,
+        exportHidden,
+      })
     }
   })
+  .then(() => verboseLog('Wrote image to', outputPath))
   .catch(err => {
     console.error('Unexpected error:', err)
   })
+
+function verboseLog(...params) {
+  if (verbose) {
+    console.log(...params)
+  }
+}
