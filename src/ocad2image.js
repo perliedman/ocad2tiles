@@ -16,6 +16,10 @@ program
     'Background color (HTML color, transparent as default)'
   )
   .option('--show-hidden', 'Include hidden symbols in the output')
+  .option(
+    '--filter-symbols <numbers>',
+    'only include numbered symbols in output'
+  )
   .option('-v,--verbose', 'Show more output')
   .parse(process.argv)
 
@@ -27,6 +31,8 @@ const {
   verbose,
 } = program
 const [ocadPath, outputPath] = program.args
+const includeSymbols =
+  program.filterSymbols && parseSymNums(program.filterSymbols)
 
 readOcad(ocadPath)
   .then(async ocadFile => {
@@ -35,9 +41,13 @@ readOcad(ocadPath)
     const isSvg = /^.*\.(svg)$/i.exec(outputPath)
     const isPdf = /^.*\.(pdf)$/i.exec(outputPath)
     const isGeoJson = /^.*\.(json|geojson)$/i.exec(outputPath)
-    verboseLog('Bounds', tiler.bounds)
+    verboseLog('Bounds', bounds)
     if (isSvg || isPdf) {
-      const svg = tiler.renderSvg(bounds, resolution, { fill, exportHidden })
+      const svg = tiler.renderSvg(bounds, resolution, {
+        fill,
+        exportHidden,
+        includeSymbols,
+      })
       if (isPdf) {
         const PDFDocument = require('pdfkit')
         const SVGtoPDF = require('svg-to-pdfkit')
@@ -71,13 +81,16 @@ readOcad(ocadPath)
     } else if (isGeoJson) {
       fs.writeFileSync(
         outputPath,
-        JSON.stringify(tiler.renderGeoJson(bounds, { exportHidden }))
+        JSON.stringify(
+          tiler.renderGeoJson(bounds, { exportHidden, includeSymbols })
+        )
       )
     } else {
       return tiler.render(bounds, resolution, {
         outputPath,
         fill,
         exportHidden,
+        includeSymbols,
       })
     }
   })
@@ -90,4 +103,14 @@ function verboseLog(...params) {
   if (verbose) {
     console.log(...params)
   }
+}
+
+function parseSymNums(s) {
+  return s.split(',').map(parseSymNum)
+}
+
+function parseSymNum(x) {
+  const n = Number(x)
+  const t = Math.trunc(n)
+  return Math.round((t + (n - t) / 100) * 1000)
 }
