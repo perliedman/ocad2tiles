@@ -2,7 +2,8 @@
 
 const fs = require('fs')
 const { program } = require('commander')
-const OcadTiler = require('.')
+const OcadTiler = require('ocad-tiler')
+const { render, renderSvg, renderGeoJson } = require('./')
 const { readOcad } = require('ocad2geojson')
 
 program
@@ -20,6 +21,7 @@ program
     '--filter-symbols <numbers>',
     'only include numbered symbols in output'
   )
+  .option('--apply-grivation', 'rotate map according to its grivation')
   .option('-v,--verbose', 'Show more output')
   .parse(process.argv)
 
@@ -29,6 +31,7 @@ const {
   fill,
   showHidden: exportHidden,
   verbose,
+  applyGrivation,
 } = program
 const [ocadPath, outputPath] = program.args
 const includeSymbols =
@@ -43,10 +46,11 @@ readOcad(ocadPath)
     const isGeoJson = /^.*\.(json|geojson)$/i.exec(outputPath)
     verboseLog('Bounds', bounds)
     if (isSvg || isPdf) {
-      const svg = tiler.renderSvg(bounds, resolution, {
+      const svg = renderSvg(tiler, bounds, resolution, {
         fill,
         exportHidden,
         includeSymbols,
+        applyGrivation,
       })
       if (isPdf) {
         const PDFDocument = require('pdfkit')
@@ -82,15 +86,16 @@ readOcad(ocadPath)
       fs.writeFileSync(
         outputPath,
         JSON.stringify(
-          tiler.renderGeoJson(bounds, { exportHidden, includeSymbols })
+          renderGeoJson(tiler, bounds, { exportHidden, includeSymbols })
         )
       )
     } else {
-      return tiler.render(bounds, resolution, {
+      return render(tiler, bounds, resolution, {
         outputPath,
         fill,
         exportHidden,
         includeSymbols,
+        applyGrivation,
       })
     }
   })

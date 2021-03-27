@@ -3,7 +3,8 @@
 const fs = require('fs')
 const path = require('path')
 const { program } = require('commander')
-const OcadTiler = require('.')
+const OcadTiler = require('ocad-tiler')
+const { render } = require('./')
 const { readOcad } = require('ocad2geojson')
 const { sync: mkdirp } = require('mkdirp')
 const { SingleBar } = require('cli-progress')
@@ -32,6 +33,7 @@ program
   .option('-s,--serve', 'Run as webserver, serving the tiles')
   .option('-p,--port <number>', 'Port to run webserver on (see --serve)', 8080)
   .option('--show-hidden', 'Include hidden symbols in the output')
+  .option('--disable-grivation', 'Do not rotate map according to its grivation')
   .parse(process.argv)
 
 if (program.args.length !== 2) {
@@ -49,7 +51,10 @@ const {
   port,
   serve,
   showHidden: exportHidden,
+  disableGrivation,
 } = program
+
+const applyGrivation = !disableGrivation
 
 readOcad(ocadPath)
   .then(async ocadFile => {
@@ -117,10 +122,11 @@ readOcad(ocadPath)
             if (!fs.existsSync(tilePath)) {
               const extent = tiler.getTileExtent(resolution, tileSize, row, col)
               mkdirp(tileDirPath)
-              await tiler.render(extent, resolution, {
+              await render(tiler, extent, resolution, {
                 outputPath: tilePath,
                 fill,
                 exportHidden,
+                applyGrivation,
               })
             }
 
@@ -194,10 +200,11 @@ readOcad(ocadPath)
 
           const extent = tiler.getTileExtent(resolution, tileSize, y, x)
           mkdirp(tileDirPath)
-          await tiler.render(extent, resolution, {
+          await render(tiler, extent, resolution, {
             outputPath: tilePath,
             fill,
             exportHidden,
+            applyGrivation,
           })
         }
         this.res.writeHead(200, { 'Content-Type': 'image/png' })
