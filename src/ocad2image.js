@@ -23,6 +23,7 @@ program
   )
   .option('--apply-grivation', 'rotate map according to its grivation')
   .option('-v,--verbose', 'Show more output')
+  .arguments('<ocadpath> <outputpath>')
   .parse(process.argv)
 
 const {
@@ -36,6 +37,9 @@ const {
 const [ocadPath, outputPath] = program.args
 const includeSymbols =
   program.filterSymbols && parseSymNums(program.filterSymbols)
+
+if (!ocadPath) exit('Missing input OCAD map path')
+if (!outputPath) exit('Missing output path')
 
 readOcad(ocadPath)
   .then(async ocadFile => {
@@ -118,4 +122,9 @@ function parseSymNum(x) {
   const n = Number(x)
   const t = Math.trunc(n)
   return Math.round((t + (n - t) / 100) * 1000)
+}
+
+function exit(s) {
+  process.stderr.write(s + '\n')
+  process.exit(1)
 }
