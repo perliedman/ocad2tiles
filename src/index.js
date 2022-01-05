@@ -25,6 +25,20 @@ function renderSvg(tiler, extent, resolution, options = {}) {
     DOMImplementation,
     ...options,
   })
+  const extentWidth = extent[2] - extent[0]
+  const extentHeight = extent[3] - extent[1]
+  const dimensions = [
+    Math.round(extentWidth / resolution),
+    Math.round(extentHeight / resolution),
+  ]
+
+  svg.setAttributeNS(
+    'http://www.w3.org/2000/svg',
+    'viewBox',
+    `0 0 ${dimensions[0]} ${dimensions[1]}`
+  )
+  svg.setAttributeNS('http://www.w3.org/2000/svg', 'width', dimensions[0])
+  svg.setAttributeNS('http://www.w3.org/2000/svg', 'height', dimensions[1])
   fixIds(svg)
   return svg
 }
