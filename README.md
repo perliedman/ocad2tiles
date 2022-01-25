@@ -2,6 +2,8 @@
 
 Creates raster images and tiles from an OCAD map file. Tiles are suitable for use with for example [Leaflet](https://leafletjs.com/) or [OpenLayers](https://openlayers.org/).
 
+For a more thorough introduction, see this [tutorial on making OCAD maps for the web](https://www.liedman.net/2022/01/05/orienteering-maps-for-the-web/). 
+
 ## Installing
 
 To use command line tools:
