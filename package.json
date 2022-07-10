@@ -1,6 +1,6 @@
 {
   "name": "ocad2tiles",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Create raster tiles from OCAD files",
   "main": "src/index.js",
   "scripts": {
