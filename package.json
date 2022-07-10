@@ -27,7 +27,7 @@
     "commander": "^6.2.1",
     "director": "^1.2.8",
     "mkdirp": "^1.0.4",
-    "ocad-tiler": "^1.1.0",
+    "ocad-tiler": "^1.2.2",
     "ocad2geojson": "^2.1.8",
     "pdfkit": "^0.11.0",
     "sharp": "^0.27.0",
