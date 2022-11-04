@@ -3,7 +3,7 @@
 const fs = require('fs')
 const { program } = require('commander')
 const OcadTiler = require('ocad-tiler')
-const { render, renderSvg, renderGeoJson } = require('./')
+const { renderFull: render, renderFullSvg: renderSvg, renderGeoJson } = require('./')
 const { readOcad } = require('ocad2geojson')
 
 program
@@ -84,7 +84,9 @@ readOcad(ocadPath)
           process.exit(0)
         })
       } else {
-        fs.writeFileSync(outputPath, svg)
+        const XMLSerializer = require('xmldom').XMLSerializer
+        fs.writeFileSync(outputPath, new XMLSerializer().serializeToString(svg))
+        process.exit(0)
       }
     } else if (isGeoJson) {
       fs.writeFileSync(
