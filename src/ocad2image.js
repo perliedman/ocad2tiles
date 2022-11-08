@@ -56,10 +56,10 @@ readOcad(ocadPath)
         includeSymbols,
         applyGrivation,
       })
+      const XMLSerializer = require('xmldom').XMLSerializer
       if (isPdf) {
         const PDFDocument = require('pdfkit')
         const SVGtoPDF = require('svg-to-pdfkit')
-        const XMLSerializer = require('xmldom').XMLSerializer
 
         const doc = new PDFDocument()
         const stream = doc.pipe(fs.createWriteStream(outputPath))
@@ -84,7 +84,7 @@ readOcad(ocadPath)
           process.exit(0)
         })
       } else {
-        fs.writeFileSync(outputPath, svg)
+        fs.writeFileSync(outputPath, new XMLSerializer().serializeToString(svg))
       }
     } else if (isGeoJson) {
       fs.writeFileSync(
