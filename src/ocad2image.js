@@ -5,6 +5,7 @@ const { program } = require('commander')
 const OcadTiler = require('ocad-tiler')
 const { render, renderSvg, renderGeoJson } = require('./')
 const { readOcad } = require('ocad2geojson')
+const mToPt = 2834.65
 
 program
   .option(
@@ -12,6 +13,10 @@ program
     'bounds (xmin, ymin, xmax, ymax) in map CRS coordinates; defaults to map bounds'
   )
   .option('-r,--resolution <number>', 'resolution in meters per pixel', 1)
+  .option(
+    '-s,--scale <string>',
+    'scale to print in, for PDF output; overrides --resolution; use either "1:10000" or just denominator like "10000"'
+  )
   .option(
     '-f,--fill <string>',
     'Background color (HTML color, transparent as default)'
@@ -22,6 +27,16 @@ program
     'only include numbered symbols in output'
   )
   .option('--apply-grivation', 'rotate map according to its grivation')
+  .option(
+    '--page-size <string>',
+    'page size for PDF output (e.g. A4, A3, A2, A1, A0)',
+    'A4'
+  )
+  .option(
+    '--page-orientation <string>',
+    'page orientation (portrait, landscape)',
+    'portrait'
+  )
   .option('-v,--verbose', 'Show more output')
   .arguments('<ocadpath> <outputpath>')
   .parse(process.argv)
@@ -29,6 +44,7 @@ program
 const {
   bounds: boundsStr,
   resolution,
+  scale,
   fill,
   showHidden: exportHidden,
   verbose,
@@ -48,20 +64,40 @@ readOcad(ocadPath)
     const isSvg = /^.*\.(svg)$/i.exec(outputPath)
     const isPdf = /^.*\.(pdf)$/i.exec(outputPath)
     const isGeoJson = /^.*\.(json|geojson)$/i.exec(outputPath)
+
     verboseLog('Bounds', bounds)
     if (isSvg || isPdf) {
-      const svg = renderSvg(tiler, bounds, resolution, {
-        fill,
-        exportHidden,
-        includeSymbols,
-        applyGrivation,
-      })
+      let scaleDenominator
+      if (scale) {
+        const scaleMatch = /^(\d+):(\d+)$/.exec(scale)
+        if (scaleMatch) {
+          scaleDenominator = Number(scaleMatch[2])
+        } else {
+          scaleDenominator = Number(scale)
+        }
+      }
+
+      const svg = renderSvg(
+        tiler,
+        bounds,
+        scaleDenominator ? scaleDenominator / mToPt : resolution,
+        {
+          fill,
+          exportHidden,
+          includeSymbols,
+          applyGrivation,
+        }
+      )
       const XMLSerializer = require('xmldom').XMLSerializer
       if (isPdf) {
         const PDFDocument = require('pdfkit')
         const SVGtoPDF = require('svg-to-pdfkit')
 
-        const doc = new PDFDocument()
+        const doc = new PDFDocument({ autoFirstPage: false })
+        doc.addPage({
+          size: program.pageSize,
+          layout: program.pageOrientation,
+        })
         const stream = doc.pipe(fs.createWriteStream(outputPath))
         SVGtoPDF(doc, new XMLSerializer().serializeToString(svg), 0, 0, {
           assumePt: true,
