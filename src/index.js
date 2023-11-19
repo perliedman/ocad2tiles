@@ -1,4 +1,4 @@
-const { ocadToGeoJson } = require('ocad2geojson/src/ocad-to-geojson')
+const ocadToGeoJson = require('ocad2geojson/src/ocad-to-geojson')
 const sharp = require('sharp')
 const DOMImplementation = global.DOMImplementation
   ? global.DOMImplementation
