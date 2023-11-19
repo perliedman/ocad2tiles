@@ -2,6 +2,7 @@
 
 const fs = require('fs')
 const { program } = require('commander')
+const XMLSerializer = require('xmldom').XMLSerializer
 const OcadTiler = require('ocad-tiler')
 const { render, renderSvg, renderGeoJson } = require('./')
 const { readOcad } = require('ocad2geojson')
@@ -61,82 +62,45 @@ readOcad(ocadPath)
   .then(async ocadFile => {
     const tiler = new OcadTiler(ocadFile)
     const bounds = boundsStr ? boundsStr.split(',').map(Number) : tiler.bounds
-    const isSvg = /^.*\.(svg)$/i.exec(outputPath)
-    const isPdf = /^.*\.(pdf)$/i.exec(outputPath)
-    const isGeoJson = /^.*\.(json|geojson)$/i.exec(outputPath)
 
     verboseLog('Bounds', bounds)
-    if (isSvg || isPdf) {
-      let scaleDenominator
-      if (scale) {
-        const scaleMatch = /^(\d+):(\d+)$/.exec(scale)
-        if (scaleMatch) {
-          scaleDenominator = Number(scaleMatch[2])
-        } else {
-          scaleDenominator = Number(scale)
-        }
-      }
-
-      const svg = renderSvg(
-        tiler,
-        bounds,
-        scaleDenominator ? scaleDenominator / mToPt : resolution,
+    const format = getFormat(outputPath)
+    switch (format) {
+      case 'svg':
+      case 'pdf':
         {
+          const scaleDenominator = getScaleDenominator(scale)
+          const outputResolution = scaleDenominator
+            ? scaleDenominator / mToPt
+            : resolution
+          const svg = getSvg(tiler, bounds, outputResolution)
+          if (format === 'pdf') {
+            return svgToPdf(svg, ocadFile)
+          } else {
+            fs.writeFileSync(
+              outputPath,
+              new XMLSerializer().serializeToString(svg)
+            )
+          }
+        }
+        break
+      case 'json':
+      case 'geojson':
+        fs.writeFileSync(
+          outputPath,
+          JSON.stringify(
+            renderGeoJson(tiler, bounds, { exportHidden, includeSymbols })
+          )
+        )
+        break
+      default:
+        return render(tiler, bounds, resolution, {
+          outputPath,
           fill,
           exportHidden,
           includeSymbols,
           applyGrivation,
-        }
-      )
-      const XMLSerializer = require('xmldom').XMLSerializer
-      if (isPdf) {
-        const PDFDocument = require('pdfkit')
-        const SVGtoPDF = require('svg-to-pdfkit')
-
-        const doc = new PDFDocument({ autoFirstPage: false })
-        doc.addPage({
-          size: program.pageSize,
-          layout: program.pageOrientation,
         })
-        const stream = doc.pipe(fs.createWriteStream(outputPath))
-        SVGtoPDF(doc, new XMLSerializer().serializeToString(svg), 0, 0, {
-          assumePt: true,
-          colorCallback: x => {
-            const color =
-              x &&
-              ocadFile.colors.find(
-                c =>
-                  c &&
-                  c.rgbArray[0] === x[0][0] &&
-                  c.rgbArray[1] === x[0][1] &&
-                  c.rgbArray[2] === x[0][2]
-              )
-            return (color && color.cmyk && [color.cmyk, x[1]]) || x
-          },
-        })
-
-        doc.end()
-        stream.on('finish', () => {
-          process.exit(0)
-        })
-      } else {
-        fs.writeFileSync(outputPath, new XMLSerializer().serializeToString(svg))
-      }
-    } else if (isGeoJson) {
-      fs.writeFileSync(
-        outputPath,
-        JSON.stringify(
-          renderGeoJson(tiler, bounds, { exportHidden, includeSymbols })
-        )
-      )
-    } else {
-      return render(tiler, bounds, resolution, {
-        outputPath,
-        fill,
-        exportHidden,
-        includeSymbols,
-        applyGrivation,
-      })
     }
   })
   .then(() => verboseLog('Wrote image to', outputPath))
@@ -163,4 +127,68 @@ function parseSymNum(x) {
 function exit(s) {
   process.stderr.write(s + '\n')
   process.exit(1)
+}
+
+function getScaleDenominator(scale) {
+  if (scale) {
+    const scaleMatch = /^(\d+):(\d+)$/.exec(scale)
+    if (scaleMatch) {
+      return Number(scaleMatch[2])
+    } else {
+      return Number(scale)
+    }
+  }
+}
+
+function mapRgbToCmyk(ocadFile) {
+  return x => {
+    const color =
+      x &&
+      ocadFile.colors.find(
+        c => c && c.rgbArray && c.rgbArray.every((v, i) => v === x[0][i])
+      )
+    const result = color && color.cmyk ? [color.cmyk, x[1]] : x
+    return result
+  }
+}
+
+function getFormat(path) {
+  const match = /\.(\w+)$/.exec(path)
+  return match && match[1].toLowerCase()
+}
+
+function getSvg(tiler, bounds, resolution) {
+  const svg = renderSvg(tiler, bounds, resolution, {
+    fill,
+    exportHidden,
+    includeSymbols,
+    applyGrivation,
+  })
+  return svg
+}
+
+function svgToPdf(svg, ocadFile) {
+  return new Promise((resolve, reject) => {
+    const PDFDocument = require('pdfkit')
+    const SVGtoPDF = require('svg-to-pdfkit')
+
+    const doc = new PDFDocument({ autoFirstPage: false })
+    doc.addPage({
+      size: program.pageSize,
+      layout: program.pageOrientation,
+    })
+    const stream = doc.pipe(fs.createWriteStream(outputPath))
+    SVGtoPDF(doc, new XMLSerializer().serializeToString(svg), 0, 0, {
+      assumePt: true,
+      colorCallback: mapRgbToCmyk(ocadFile),
+    })
+
+    doc.end()
+    stream.on('finish', () => {
+      resolve()
+    })
+    stream.on('error', err => {
+      reject(err)
+    })
+  })
 }
