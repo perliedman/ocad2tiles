@@ -30,7 +30,7 @@
     "ocad-tiler": "^1.4.0",
     "ocad2geojson": "^2.1.12",
     "pdfkit": "^0.14.0",
-    "sharp": "^0.27.0",
+    "sharp": "^0.33.5",
     "svg-to-pdfkit": "^0.1.8",
     "xmldom": "^0.4.0"
   },
